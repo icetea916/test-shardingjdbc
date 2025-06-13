@@ -1,0 +1,32 @@
+### Create Order
+GET localhost:8080/order/create?userId={{$random.number.digit}}
+
+
+### batch create
+POST localhost:8080/order/batch-create
+Content-Type: application/json
+
+[
+  56979690274329,56979690274320
+]
+
+
+
+### list
+GET localhost:8080/order/list
+
+
+
+
+### list by userId
+GET localhost:8080/order/list-by-userId?userId={{$random.number.digit}}
+
+### list by userIds
+POST localhost:8080/order/list-by-userIds
+Content-Type: application/json
+
+[
+  56979690274329,56979690274320
+]
+
+

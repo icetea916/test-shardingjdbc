@@ -1,0 +1,69 @@
+spring:
+  shardingsphere:
+    mode: # 运行模式，支持memory、standalone、cluster，我们选择比较简单的standalone配置
+      type: Standalone
+      repository:
+        type: JDBC
+    props:
+      sql-show: true # 配置为ture会把执行的sql打印出来，方便排查问题
+    datasource:
+      names: ds_0
+      ds_0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/test_shardingjdbc
+        username: root
+        password: '123456'
+        # Druid连接池配置
+        datasource.druid:
+          initial-size: 5 # 连接池初始化时创建的连接数。默认值为0。
+          min-idle: 5 # 连接池中保持的最小空闲连接数量。当连接池中的连接数量小于这个值时，连接池会尝试创建新的连接。默认值为0。
+          max-active: 20 # 连接池中允许的最大连接数。如果所有连接都被使用并且没有空闲连接，新的连接请求将被阻塞，直到有连接可用。默认值为8。
+          max-wait: 60000 # 获取连接时的最大等待时间，单位为毫秒。如果在指定的时间内无法获取到连接，将抛出异常。默认值为-1，表示无限等待。
+          time-between-eviction-runs-millis: 60000 # 连接池每次检测空闲连接的间隔时间，单位为毫秒。默认值为60000毫秒（1分钟）。
+          min-evictable-idle-time-millis: 300000 # 连接在连接池中的最小空闲时间，超过这个时间的连接将被回收，单位为毫秒。默认值为300000毫秒（5分钟）。
+          validation-query: SELECT 1 # 用于验证连接是否有效的SQL查询语句。Druid会定期执行此查询来检测连接的可用性。默认为"SELECT 1"。
+          test-while-idle: true # 是否在连接空闲时检测连接的有效性。如果设置为true，则连接池会定期检测空闲连接，如果连接失效，将被标记为不可用并移除。默认为true。
+          test-on-borrow: false # 是否在从连接池借用连接时检测连接的有效性。如果设置为true，每次从连接池借用连接时都会执行连接有效性检测。默认为false。
+          test-on-return: false # 是否在归还连接到连接池时检测连接的有效性。如果设置为true，连接在归还到连接池时会进行有效性检测。默认为false。
+          pool-prepared-statements: true # 是否开启预处理语句池。预处理语句池可以提高性能，特别是在执行相同SQL语句多次时。默认为true。
+          max-pool-prepared-statement-per-connection-size: 20 #每个连接上允许的最大预处理语句数。默认值为20。
+    # 说明 https://shardingsphere.apache.org/document/5.2.1/cn/dev-manual/sharding/#shardingalgorithm
+    rules:
+      sharding:
+        tables: # 分表的规则配置，每一个需要做分库分表的表都需要单独配置
+          # trade_order表 分表配置
+          trade_order:
+            actual-data-nodes: ds_0.trade_order_000${0..3} # 指定分片的实际数据节点，ds.trade_order_0${0..3} 表示数据将分布在4个节点上：ds.trade_order_01, ds.trade_order_02, ds.trade_order_03, ds.trade_order_04
+            # 定义主键生成策略
+            keyGenerateStrategy:
+              column: id  #指定主键生成的列
+              keyGeneratorName: snowflake # 指定使用主键生成器名称，这里使用snowflake算法
+            # 表的分片策略
+            table-strategy:
+              # 使用复杂分片策略
+              complex:
+                shardingColumns: user_id # 指定用于分片的列，这里使用 用户id，多个列用逗号隔开
+                shardingAlgorithmName: trade-order-algorithm # 指定使用的分片算法名称，这里使用的是 t-order-inline 算法
+        # 分表算法相关配置
+        shardingAlgorithms:
+          # 定义一个算法名称
+          trade-order-algorithm:
+            type: CLASS_BASED # 指定算法类型为inline
+            props:
+              algorithmClassName: life.icetea.test.shardingjdbc.config.OrderShardingTableStrategy
+              strategy: complex
+              shardingColumn: user_id
+        # 主键生成其配置
+        keyGenerators:
+          # 定义一个主键生成器名称为snowflake
+          snowflake:
+            type: SNOWFLAKE
+        auditors:
+          sharding_key_required_auditor:
+            type: DML_SHARDING_CONDITIONS
+
+# MyBatis配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: # 将数据库字段的下划线命名转换为驼峰命名
