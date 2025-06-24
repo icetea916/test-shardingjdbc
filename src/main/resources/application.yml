@@ -44,12 +44,12 @@ spring:
               # 使用复杂分片策略
               complex:
                 shardingColumns: user_id # 指定用于分片的列，这里使用 用户id，多个列用逗号隔开
-                shardingAlgorithmName: trade-order-algorithm # 指定使用的分片算法名称，这里使用的是 t-order-inline 算法
+                shardingAlgorithmName: trade-order-algorithm # 指定使用的分片算法名称
         # 分表算法相关配置
         shardingAlgorithms:
           # 定义一个算法名称
           trade-order-algorithm:
-            type: CLASS_BASED # 指定算法类型为inline
+            type: CLASS_BASED # 指定算法类型
             props:
               algorithmClassName: life.icetea.test.shardingjdbc.config.OrderShardingTableStrategy
               strategy: complex
