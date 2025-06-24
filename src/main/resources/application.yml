@@ -34,7 +34,7 @@ spring:
         tables: # 分表的规则配置，每一个需要做分库分表的表都需要单独配置
           # trade_order表 分表配置
           trade_order:
-            actual-data-nodes: ds_0.trade_order_000${0..3} # 指定分片的实际数据节点，ds.trade_order_0${0..3} 表示数据将分布在4个节点上：ds.trade_order_01, ds.trade_order_02, ds.trade_order_03, ds.trade_order_04
+            actual-data-nodes: ds_0.trade_order_000${0..3} # 指定分片的实际数据节点，ds.trade_order_0${0..3}
             # 定义主键生成策略
             keyGenerateStrategy:
               column: id  #指定主键生成的列
